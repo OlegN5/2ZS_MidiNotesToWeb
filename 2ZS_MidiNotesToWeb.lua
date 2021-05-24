@@ -48,6 +48,7 @@ function main()
     cur_pos = reaper.GetCursorPosition()
     allPosNote, allLyric = getMidiNotesStart ()
     reaper.SetProjExtState( 0, "2ZS_Lyrics", "text", allPosNote)
+    
     --reaper.SetProjExtState( 0, "2ZS_Lyrics", "text", "--XR-NO-TEXT--" )
   end
   
@@ -185,7 +186,7 @@ for i = 0, num_selected_items - 1 do
       allPosNote = ''
       positionNote = ''
       allLyric =''
-      
+      lyrOk = 0
       while pos <= buf:len() do
         offs, flag, msg = string.unpack("IBs4", buf, pos)
         total_offset = total_offset + offs
@@ -194,12 +195,28 @@ for i = 0, num_selected_items - 1 do
         if msg:byte(1) == 144 and msg:byte(3) ~= 0 then
             positionNote = reaper.MIDI_GetProjTimeFromPPQPos(take, total_offset)
             allPosNote = allPosNote..positionNote.."|"
+            lyrOk=lyrOk+1
         end
         -- Determine if this event is a lyric message
         if msg:byte(1) == 255 and msg:byte(2) == 5 then
           lyric = msg:sub(3)
+          
+           if lyrOk == 2 then 
+              lyric = '*|'..lyric
+              lyrOk = 0
+           end
+           if lyrOk == 3 then 
+              lyric ='*|*|'..lyric
+              lyrOk = 0
+           end
+           if lyrOk == 4 then 
+               lyric ='*|*|*|'..lyric
+               lyrOk = 0
+           end
+         lyrOk = 0    
           --Msg(msg:byte(3))
          -- Msg(msg)
+         
             if  msg:byte(3) == 13 then
              lyric = ' '
              --Msg(13)
@@ -226,6 +243,10 @@ for i = 0, num_selected_items - 1 do
 end
 
 --Msg(allLyric)
+
+if allPosNote =='' then
+allPosNote = 'NO-NOTES'
+end
 return allPosNote, allLyric
 end
 
