@@ -242,6 +242,7 @@ for i = 0, num_selected_items - 1 do
   end
 end
 
+
 --Msg(allLyric)
 
 if allPosNote =='' then
